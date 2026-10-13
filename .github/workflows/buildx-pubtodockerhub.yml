@@ -6,7 +6,7 @@ name: "Buildx Publish"
 # exemple, si vous indiquez : abesesr/abes-hello
 #   alors l'image sera poussée sur https://hub.docker.com/r/abesesr/abes-hello
 env:
-  DOCKERHUB_IMAGE_PREFIX: abesesr/iar
+  DOCKERHUB_IMAGE_PREFIX: abesesr/indexation-sujet
 
 on:
   push:
@@ -47,5 +47,5 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/')) }}
-          target: batch-dump-image
-          tags: ${{ steps.docker_tag_meta.outputs.tags }}-batch-dump
+          target: batch-image
+          tags: ${{ steps.docker_tag_meta.outputs.tags }}-batch
