@@ -21,8 +21,9 @@ app:
     enabled: true
     action: update
     output-directory: ${IAR_BATCH_OUTPUT_DIR}
-    output-filename: ${IAR_BATCH_CSV_OUTPUT_FILENAME:export_rameau.csv}
+    output-filename: ${IAR_BATCH_CSV_OUTPUT_FILENAME:export_rameau}
     vectorization-url: ${IAR_BATCH_VECTORIZATION_URL}
+    upload-url: ${IAR_UPLOAD_API_URL}
     partition:
       chunk-size: ${IAR_BATCH_CHUNK_SIZE}
       source-table: ${IAR_BATCH_SOURCE_TABLE}

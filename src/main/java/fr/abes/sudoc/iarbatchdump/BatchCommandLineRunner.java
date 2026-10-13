@@ -29,20 +29,13 @@ public class BatchCommandLineRunner implements CommandLineRunner {
     @Value("${app.batch.action}")
     private String action;
 
-    @Value("${app.batch.output-directory}")
-    private String outputFilePath;
-
-    @Value("${app.batch.output-filename}")
-    private String outputFilename;
 
     @Override
     public void run(String... args) throws Exception {
 
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("action", action)
-                .addString("outputFilePath", outputFilePath)
                 .addString("sqlFile", "notices_query.sql")
-                .addString("filename", outputFilename)
                 .toJobParameters();
 
         jobLauncher.run(noticeExportJob, jobParameters);

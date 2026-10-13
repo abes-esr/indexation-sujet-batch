@@ -23,7 +23,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 import fr.abes.sudoc.iarbatchdump.processor.DeduplicateNoticesProcessor;
-import fr.abes.sudoc.iarbatchdump.takslet.CallVectorizationApiTasklet;
+import fr.abes.sudoc.iarbatchdump.takslet.UploadCsvFileTasklet;
 
 
 @Configuration
@@ -61,13 +61,13 @@ public class BatchConfig {
             JobRepository jobRepository,
             @Qualifier("exportNoticesStep") Step exportNoticesStep,
             @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep,
-            @Qualifier("callVectorizationApiStep") Step callVectorizationApiStep
+            @Qualifier("uploadCsvFileStep") Step uploadCsvFileStep
         ) {
 
         return new JobBuilder("noticeExportJob", jobRepository)
                 .start(exportNoticesStep)
                 .next(deduplicateCsvStep)
-                .next(callVectorizationApiStep)
+                .next(uploadCsvFileStep)
                 .build();
     }
 
@@ -143,13 +143,13 @@ public class BatchConfig {
 
     // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le batch est terminé et que les csv sont disponibles)
     @Bean
-    public Step callVectorizationApiStep(
+    public Step uploadCsvFileStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
-            CallVectorizationApiTasklet callVectorizationApiTasklet) {
+            UploadCsvFileTasklet uploadCsvFileTasklet) {
 
-        return new StepBuilder("callVectorizationApiStep", jobRepository)
-                .tasklet(callVectorizationApiTasklet, transactionManager)
+        return new StepBuilder("uploadCsvFileStep", jobRepository)
+                .tasklet(uploadCsvFileTasklet, transactionManager)
                 .build();
     }
 
