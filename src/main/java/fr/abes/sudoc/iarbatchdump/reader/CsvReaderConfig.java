@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.reader;
+package fr.abes.sudoc.indexation-sujetbatchdump.reader;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;

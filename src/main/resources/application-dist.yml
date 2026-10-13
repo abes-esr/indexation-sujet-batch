@@ -2,7 +2,7 @@ spring:
   main:
     web-application-type: none
   application:
-    name: iar-batch-dump
+    name: indexation-sujet-batch
 
   datasource:
     h2:
@@ -20,22 +20,21 @@ app:
   batch:
     enabled: true
     action: update
-    output-directory: ${IAR_BATCH_OUTPUT_DIR}
-    output-filename: ${IAR_BATCH_CSV_OUTPUT_FILENAME:export_rameau}
-    vectorization-url: ${IAR_BATCH_VECTORIZATION_URL}
-    upload-url: ${IAR_UPLOAD_API_URL}
+    output-directory: ${INDEXATION_SUJET_BATCH_OUTPUT_DIR}
+    output-filename: ${INDEXATION_SUJET_BATCH_CSV_OUTPUT_FILENAME:export_rameau.csv}
+    vectorization-url: ${INDEXATION_SUJET_BATCH_VECTORIZATION_URL}
     partition:
-      chunk-size: ${IAR_BATCH_CHUNK_SIZE}
-      source-table: ${IAR_BATCH_SOURCE_TABLE}
+      chunk-size: ${INDEXATION_SUJET_BATCH_CHUNK_SIZE}
+      source-table: ${INDEXATION_SUJET_BATCH_SOURCE_TABLE}
 
   datasource:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@//${IAR_ORACLE_HOST}:${IAR_ORACLE_PORT}/${IAR_ORACLE_SERVICE}
-      username: ${IAR_ORACLE_USER}
-      password: ${IAR_ORACLE_PASSWORD}
+      jdbc-url: jdbc:oracle:thin:@//${INDEXATION_SUJET_ORACLE_HOST}:${INDEXATION_SUJET_ORACLE_PORT}/${INDEXATION_SUJET_ORACLE_SERVICE}
+      username: ${INDEXATION_SUJET_ORACLE_USER}
+      password: ${INDEXATION_SUJET_ORACLE_PASSWORD}
 
 logging:
   level:
-    fr.abes.iarbatchdump: DEBUG
+    fr.abes.indexation-sujetbatchdump: DEBUG
     org.springframework.batch: INFO

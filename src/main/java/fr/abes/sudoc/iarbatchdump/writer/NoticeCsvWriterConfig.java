@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.writer;
+package fr.abes.sudoc.indexation-sujetbatchdump.writer;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -36,7 +36,6 @@ public class NoticeCsvWriterConfig {
         return writer;
     }
 
-
     @Bean
     @StepScope
     public FlatFileItemWriter<CsvRecord> deduplicationCsvWriter() {
@@ -47,13 +46,9 @@ public class NoticeCsvWriterConfig {
         writer.setResource( new FileSystemResource(filenameUtils.getOutputFilePath()) );
         writer.setAppendAllowed(true);
         writer.setLineAggregator(CsvRecord::toCsvLine);
-        writer.setHeaderCallback( w -> w.write( "ppn\tthese\ttitre\tresume\trameau\tlangue" ) );
+        writer.setHeaderCallback(w -> w.write("ppn\tthese\ttitre\tresume\trameau\tlangue"));
 
         return writer;
     }
 
-
-
 }
-
-

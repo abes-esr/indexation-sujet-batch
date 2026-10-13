@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump;
+package fr.abes.sudoc.indexation-sujetbatchdump;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -12,10 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(
-    name = "app.batch.enabled",
-    havingValue = "true"
-)
+@ConditionalOnProperty(name = "app.batch.enabled", havingValue = "true")
 public class BatchCommandLineRunner implements CommandLineRunner {
 
     @Autowired
@@ -24,7 +21,6 @@ public class BatchCommandLineRunner implements CommandLineRunner {
     @Autowired
     @Qualifier("noticeExportJob")
     private Job noticeExportJob;
-
 
     @Value("${app.batch.action}")
     private String action;

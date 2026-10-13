@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.config;
+package fr.abes.sudoc.indexation-sujetbatchdump.config;
 
 import javax.sql.DataSource;
 
@@ -21,10 +21,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
-import fr.abes.sudoc.iarbatchdump.processor.DeduplicateNoticesProcessor;
-import fr.abes.sudoc.iarbatchdump.takslet.UploadCsvFileTasklet;
-
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.processor.DeduplicateNoticesProcessor;
+import fr.abes.sudoc.indexation-sujetbatchdump.takslet.CallVectorizationApiTasklet;
 
 @Configuration
 @EnableBatchProcessing

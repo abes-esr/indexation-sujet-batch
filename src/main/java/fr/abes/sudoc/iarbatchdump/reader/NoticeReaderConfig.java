@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.reader;
+package fr.abes.sudoc.indexation-sujetbatchdump.reader;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,24 +14,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import fr.abes.sudoc.iarbatchdump.mapper.NoticeRowMapper;
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.mapper.NoticeRowMapper;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 
 @Configuration
 public class NoticeReaderConfig {
-    
 
-    // reader qui lit le résultat de la procédure (la procédure doit être lancée au préalable, et les résultats sont dans la table IAR_RESULTAT_PROCEDURE)
+    // reader qui lit le résultat de la procédure (la procédure doit être lancée au
+    // préalable, et les résultats sont dans la table
+    // INDEXATION_SUJET_RESULTAT_PROCEDURE)
     @Bean
     @StepScope
     public JdbcCursorItemReader<CsvRecord> noticeReaderProcedure(
-            @Qualifier("testDataSource") DataSource dataSource
-    ) throws IOException {
-        
+            @Qualifier("testDataSource") DataSource dataSource) throws IOException {
 
-        String sql = "SELECT * FROM IAR_RESULTAT_PROCEDURE";
-        
-    
+        String sql = "SELECT * FROM INDEXATION_SUJET_RESULTAT_PROCEDURE";
+
         return new JdbcCursorItemReaderBuilder<CsvRecord>()
                 .name("noticeReaderProcedure")
                 .dataSource(dataSource)
@@ -40,8 +38,7 @@ public class NoticeReaderConfig {
                 .build();
     }
 
-
-// reader qui lit par chunk la requête sur les vraies tables
+    // reader qui lit par chunk la requête sur les vraies tables
     @Bean
     @StepScope
     @Primary
@@ -51,33 +48,31 @@ public class NoticeReaderConfig {
             @Value("#{jobParameters['action']}") String action,
             @Value("#{stepExecutionContext['borneInf']}") Long borneInf,
             @Value("#{stepExecutionContext['borneSup']}") Long borneSup)
-    throws IOException {
-        
+            throws IOException {
+
         String sql;
-        
+
         sql = new String(
                 getClass().getResourceAsStream("/sql/" + sqlFile).readAllBytes(),
-                StandardCharsets.UTF_8
-        );
-        
-        // si on est en action --init, on enlève la clause where qui dit "prend que ceux modifiés depuis une semaine" 
+                StandardCharsets.UTF_8);
+
+        // si on est en action --init, on enlève la clause where qui dit "prend que ceux
+        // modifiés depuis une semaine"
         if (action != null && "init".equals(action)) {
             sql = sql.replace("${UPDATE_CONDITION}", "");
         } else {
-            
+
             sql = sql.replace(
-                "${UPDATE_CONDITION}",
-                """
-                AND b.ppn IN (
-                    SELECT DISTINCT ppn
-                    FROM BIBLIO_TABLE_CHANGE_BY_TAG
-                    WHERE DATE_ETAT > SYSDATE - 7
-                    AND TAG = '606$2'
-                )
-                """
-            );
+                    "${UPDATE_CONDITION}",
+                    """
+                            AND b.ppn IN (
+                                SELECT DISTINCT ppn
+                                FROM BIBLIO_TABLE_CHANGE_BY_TAG
+                                WHERE DATE_ETAT > SYSDATE - 7
+                                AND TAG = '606$2'
+                            )
+                            """);
         }
-        
 
         return new JdbcCursorItemReaderBuilder<CsvRecord>()
                 .name("noticeReaderRequete")
@@ -91,7 +86,5 @@ public class NoticeReaderConfig {
                 .rowMapper(new NoticeRowMapper())
                 .build();
     }
-
-
 
 }

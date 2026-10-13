@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.listener;
+package fr.abes.sudoc.indexation-sujetbatchdump.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.BatchStatus;

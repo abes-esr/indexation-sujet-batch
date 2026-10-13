@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump;
+package fr.abes.sudoc.indexation-sujetbatchdump;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
