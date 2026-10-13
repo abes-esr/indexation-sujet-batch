@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.takslet;
+package fr.abes.sudoc.indexation-sujetbatchdump.takslet;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component 
-public class CallVectorizationApiTasklet implements Tasklet{
+@Component
+public class CallVectorizationApiTasklet implements Tasklet {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -18,14 +18,12 @@ public class CallVectorizationApiTasklet implements Tasklet{
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        
 
         restTemplate.postForEntity(
-            URL_API, 
-            null, 
-            Void.class);
-    
-    
+                URL_API,
+                null,
+                Void.class);
+
         return RepeatStatus.FINISHED;
     }
 }

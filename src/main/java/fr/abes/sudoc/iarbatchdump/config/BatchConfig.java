@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.config;
+package fr.abes.sudoc.indexation-sujetbatchdump.config;
 
 import javax.sql.DataSource;
 
@@ -21,136 +21,123 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
-import fr.abes.sudoc.iarbatchdump.processor.DeduplicateNoticesProcessor;
-import fr.abes.sudoc.iarbatchdump.takslet.CallVectorizationApiTasklet;
-
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.processor.DeduplicateNoticesProcessor;
+import fr.abes.sudoc.indexation-sujetbatchdump.takslet.CallVectorizationApiTasklet;
 
 @Configuration
 @EnableBatchProcessing
 public class BatchConfig {
 
-    // ======================
-    // 1. TRANSACTION MANAGER (H2 pour les métadonnées Spring Batch)
-    // ======================
-    @Bean
-    public PlatformTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
+        // ======================
+        // 1. TRANSACTION MANAGER (H2 pour les métadonnées Spring Batch)
+        // ======================
+        @Bean
+        public PlatformTransactionManager transactionManager(DataSource dataSource) {
+                return new DataSourceTransactionManager(dataSource);
+        }
 
-    // ======================
-    // 2. JDBC TEMPLATE ORACLE (pour les requêtes métiers)
-    // ======================
+        // ======================
+        // 2. JDBC TEMPLATE ORACLE (pour les requêtes métiers)
+        // ======================
 
-    @Bean("oracleJdbcTemplate")
-    @Profile("!test")
-    @Primary 
-    public JdbcTemplate oracleJdbcTemplate(@Qualifier("oracleDataSource") DataSource oracleDataSource) {
-        return new JdbcTemplate(oracleDataSource);
-    }
+        @Bean("oracleJdbcTemplate")
+        @Profile("!test")
+        @Primary
+        public JdbcTemplate oracleJdbcTemplate(@Qualifier("oracleDataSource") DataSource oracleDataSource) {
+                return new JdbcTemplate(oracleDataSource);
+        }
 
-    
+        // ======================
+        // JOBS
+        // ======================
 
-    // ======================
-    // JOBS
-    // ======================
+        @Bean
+        public Job noticeExportJob(
+                        JobRepository jobRepository,
+                        @Qualifier("exportNoticesStep") Step exportNoticesStep,
+                        @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep,
+                        @Qualifier("callVectorizationApiStep") Step callVectorizationApiStep) {
 
+                return new JobBuilder("noticeExportJob", jobRepository)
+                                .start(exportNoticesStep)
+                                .next(deduplicateCsvStep)
+                                .next(callVectorizationApiStep)
+                                .build();
+        }
 
-    @Bean
-    public Job noticeExportJob(
-            JobRepository jobRepository,
-            @Qualifier("exportNoticesStep") Step exportNoticesStep,
-            @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep,
-            @Qualifier("callVectorizationApiStep") Step callVectorizationApiStep
-        ) {
+        // ======================
+        // STEPS
+        // ======================
 
-        return new JobBuilder("noticeExportJob", jobRepository)
-                .start(exportNoticesStep)
-                .next(deduplicateCsvStep)
-                .next(callVectorizationApiStep)
-                .build();
-    }
+        // step worker (celui qui read et write)
+        @Bean
+        public Step exportNoticeWorkerStep(
+                        JobRepository jobRepository,
+                        PlatformTransactionManager transactionManager,
+                        JdbcCursorItemReader<CsvRecord> noticeReader,
+                        FlatFileItemWriter<CsvRecord> csvWriter) {
 
+                return new StepBuilder("exportNoticeWorkerStep", jobRepository)
+                                .<CsvRecord, CsvRecord>chunk(
+                                                1000,
+                                                transactionManager)
+                                .reader(noticeReader)
+                                // pas besoin de processor ici, puisqu'il n'y a pas de traitement entre l'entrée
+                                // et la sortie
+                                .writer(csvWriter)
+                                .build();
+        }
 
+        // step "chef d'orchestre", qui lance le step de lecture et d'écriture plusieurs
+        // fois mais sur différentes partitions
+        @Bean
+        public Step exportNoticesStep(
+                        JobRepository jobRepository,
+                        @Qualifier("exportNoticeWorkerStep") Step exportNoticeWorkerStep,
+                        Partitioner noticePartitioner) {
 
-    // ======================
-    // STEPS
-    // ======================
+                return new StepBuilder("exportNoticesStep", jobRepository)
+                                .partitioner(
+                                                "exportNoticesWorkerStep",
+                                                noticePartitioner)
+                                .step(exportNoticeWorkerStep)
+                                .gridSize(1)
+                                .build();
+        }
 
+        // step qui supprime les doublons du fichier
+        @Bean
+        public Step deduplicateNoticesStep(
+                        JobRepository jobRepository,
+                        PlatformTransactionManager transactionManager,
+                        FlatFileItemReader<CsvRecord> deduplicationReader,
+                        DeduplicateNoticesProcessor processor,
+                        @Qualifier("deduplicationCsvWriter") FlatFileItemWriter<CsvRecord> deduplicatedCsvWriter) {
 
-    // step worker (celui qui read et write)
-    @Bean
-    public Step exportNoticeWorkerStep(
-            JobRepository jobRepository,
-            PlatformTransactionManager transactionManager,
-            JdbcCursorItemReader<CsvRecord> noticeReader,
-            FlatFileItemWriter<CsvRecord> csvWriter) {
+                return new StepBuilder(
+                                "deduplicateNoticesStep",
+                                jobRepository)
+                                .<CsvRecord, CsvRecord>chunk(
+                                                1000,
+                                                transactionManager)
+                                .reader(deduplicationReader)
+                                .processor(processor)
+                                .writer(deduplicatedCsvWriter)
+                                .build();
+        }
 
-        return new StepBuilder("exportNoticeWorkerStep", jobRepository)
-                .<CsvRecord, CsvRecord>chunk(
-                        1000,
-                        transactionManager
-                )
-                .reader(noticeReader)
-                // pas besoin de processor ici, puisqu'il n'y a pas de traitement entre l'entrée et la sortie
-                .writer(csvWriter)
-                .build();
-    }
+        // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le
+        // batch est terminé et que les csv sont disponibles)
+        @Bean
+        public Step callVectorizationApiStep(
+                        JobRepository jobRepository,
+                        PlatformTransactionManager transactionManager,
+                        CallVectorizationApiTasklet callVectorizationApiTasklet) {
 
-
-
-    // step "chef d'orchestre", qui lance le step de lecture et d'écriture plusieurs fois mais sur différentes partitions
-    @Bean
-    public Step exportNoticesStep(
-            JobRepository jobRepository,
-            @Qualifier("exportNoticeWorkerStep") Step exportNoticeWorkerStep,
-            Partitioner noticePartitioner) {
-
-        return new StepBuilder("exportNoticesStep", jobRepository)
-                .partitioner(
-                        "exportNoticesWorkerStep",
-                        noticePartitioner
-                )
-                .step(exportNoticeWorkerStep)
-                .gridSize(1)
-                .build();
-    }
-
-    
-
-    // step qui supprime les doublons du fichier
-    @Bean
-    public Step deduplicateNoticesStep(
-        JobRepository jobRepository,
-        PlatformTransactionManager transactionManager,
-        FlatFileItemReader<CsvRecord> deduplicationReader,
-        DeduplicateNoticesProcessor processor,
-        @Qualifier("deduplicationCsvWriter") FlatFileItemWriter<CsvRecord> deduplicatedCsvWriter) {
-
-        return new StepBuilder(
-                "deduplicateNoticesStep",
-                jobRepository
-        )
-        .<CsvRecord, CsvRecord>chunk(
-                1000,
-                transactionManager
-        )
-        .reader(deduplicationReader)
-        .processor(processor)
-        .writer(deduplicatedCsvWriter)
-        .build();
-    }
-
-    // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le batch est terminé et que les csv sont disponibles)
-    @Bean
-    public Step callVectorizationApiStep(
-            JobRepository jobRepository,
-            PlatformTransactionManager transactionManager,
-            CallVectorizationApiTasklet callVectorizationApiTasklet) {
-
-        return new StepBuilder("callVectorizationApiStep", jobRepository)
-                .tasklet(callVectorizationApiTasklet, transactionManager)
-                .build();
-    }
+                return new StepBuilder("callVectorizationApiStep", jobRepository)
+                                .tasklet(callVectorizationApiTasklet, transactionManager)
+                                .build();
+        }
 
 }

@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>fr.abes.sudoc</groupId>
-    <artifactId>iar-batch-dump</artifactId>
+    <artifactId>indexation-sujet-batch</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>IAR Batch Dump</name>
+    <name>INDEXATION_SUJET Batch Dump</name>
     <description>Projet Spring Batch pour l'extraction, l'upload et la vectorisation des données Rameau</description>
 
     <properties>

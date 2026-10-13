@@ -1,5 +1,4 @@
-package fr.abes.sudoc.iarbatchdump;
-
+package fr.abes.sudoc.indexation-sujetbatchdump;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("test")
@@ -38,20 +37,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class GenerationComparisonTest {
 
-    
-
     @Autowired
     private JobLauncher jobLauncher;
 
-    
     @Autowired
     @Qualifier("noticeExportJobProcedureTest")
     private Job jobProcedure;
-    
+
     @Autowired
     @Qualifier("noticeExportJob")
     private Job jobRequete;
-
 
     @Value("${app.comparison-test.output-directory}")
     private String outputFilePath;
@@ -62,31 +57,20 @@ class GenerationComparisonTest {
     @Value("${app.comparison-test.query-filename}")
     private String queryFilename;
 
-
     private final JdbcTemplate comparisonJdbcTemplate;
 
     @Autowired
     GenerationComparisonTest(
-            @Qualifier("oracleJdbcTemplate")
-            JdbcTemplate jdbcTemplate
-    ) {
+            @Qualifier("oracleJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.comparisonJdbcTemplate = jdbcTemplate;
     }
-
-
-
-
 
     @Test
     void procedureEtSqlDoiventProduireLeMemeCsv() throws Exception {
 
-        
-
         // 1. Exécution de la procédure historique (vide la table et la remplit)
-        comparisonJdbcTemplate.execute("TRUNCATE TABLE IAR_RESULTAT_PROCEDURE");
-        comparisonJdbcTemplate.execute( "BEGIN IAR_QE_EXPORT_RAMEAU_TEST(); END;" );
-
-
+        comparisonJdbcTemplate.execute("TRUNCATE TABLE INDEXATION_SUJET_RESULTAT_PROCEDURE");
+        comparisonJdbcTemplate.execute("BEGIN INDEXATION_SUJET_QE_EXPORT_RAMEAU_TEST(); END;");
 
         // 2. Transformer le résultat de la procédure en CSV
         JobParameters jobParametersProcedure = new JobParametersBuilder()
@@ -94,8 +78,7 @@ class GenerationComparisonTest {
                 .addString("filename", procedureFilename)
                 .toJobParameters();
 
-        jobLauncher.run(jobProcedure , jobParametersProcedure );
-
+        jobLauncher.run(jobProcedure, jobParametersProcedure);
 
         // 3. faire la même chose mais avec la requête SQL
         JobParameters jobParametersQuery = new JobParametersBuilder()
@@ -103,124 +86,107 @@ class GenerationComparisonTest {
                 .addString("sqlFile", "notices_query_test.sql")
                 .addString("filename", queryFilename)
                 .toJobParameters();
-                
-        jobLauncher.run(jobRequete , jobParametersQuery );
+
+        jobLauncher.run(jobRequete, jobParametersQuery);
 
         // 4. Comparer les deux CSV
         comparerCsv();
     }
 
-    
+    private void comparerCsv() throws IOException {
 
-    
-   
-private void comparerCsv() throws IOException {
+        Path fichierProcedure = Path.of(outputFilePath + "/" + procedureFilename);
+        Path fichierRequete = Path.of(outputFilePath + "/" + queryFilename);
 
-    Path fichierProcedure = Path.of(outputFilePath + "/" + procedureFilename);
-    Path fichierRequete = Path.of(outputFilePath + "/" + queryFilename);
+        Map<String, CsvRecord> procedureRecords = lireCsv(fichierProcedure);
+        Map<String, CsvRecord> requeteRecords = lireCsv(fichierRequete);
 
-    Map<String, CsvRecord> procedureRecords = lireCsv(fichierProcedure);
-    Map<String, CsvRecord> requeteRecords = lireCsv(fichierRequete);
+        // Vérification du nombre de notices
+        assertEquals(
+                procedureRecords.size(),
+                requeteRecords.size(),
+                "Les deux fichiers ne contiennent pas le même nombre de notices");
 
-    // Vérification du nombre de notices
-    assertEquals(
-            procedureRecords.size(),
-            requeteRecords.size(),
-            "Les deux fichiers ne contiennent pas le même nombre de notices"
-    );
+        // PPN présents uniquement dans le fichier de la procédure
+        Set<String> uniquementProcedure = new HashSet<>(procedureRecords.keySet());
 
-    // PPN présents uniquement dans le fichier de la procédure
-    Set<String> uniquementProcedure =
-            new HashSet<>(procedureRecords.keySet());
+        uniquementProcedure.removeAll(requeteRecords.keySet());
 
-    uniquementProcedure.removeAll(requeteRecords.keySet());
+        assertTrue(
+                uniquementProcedure.isEmpty(),
+                "PPN présents uniquement dans procedure_test.csv : "
+                        + uniquementProcedure);
 
-    assertTrue(
-            uniquementProcedure.isEmpty(),
-            "PPN présents uniquement dans procedure_test.csv : "
-                    + uniquementProcedure
-    );
+        // PPN présents uniquement dans le fichier de la requête
+        Set<String> uniquementRequete = new HashSet<>(requeteRecords.keySet());
 
-    // PPN présents uniquement dans le fichier de la requête
-    Set<String> uniquementRequete =
-            new HashSet<>(requeteRecords.keySet());
+        uniquementRequete.removeAll(procedureRecords.keySet());
 
-    uniquementRequete.removeAll(procedureRecords.keySet());
+        assertTrue(
+                uniquementRequete.isEmpty(),
+                "PPN présents uniquement dans requete_test.csv : "
+                        + uniquementRequete);
 
-    assertTrue(
-            uniquementRequete.isEmpty(),
-            "PPN présents uniquement dans requete_test.csv : "
-                    + uniquementRequete
-    );
+        // Comparaison des notices
+        List<String> differences = new ArrayList<>();
 
-    // Comparaison des notices
-    List<String> differences = new ArrayList<>();
+        for (String ppn : procedureRecords.keySet()) {
 
-    for (String ppn : procedureRecords.keySet()) {
+            CsvRecord procedure = procedureRecords.get(ppn);
+            CsvRecord requete = requeteRecords.get(ppn);
 
-        CsvRecord procedure = procedureRecords.get(ppn);
-        CsvRecord requete = requeteRecords.get(ppn);
-
-        if (requete != null) {
-            comparerNotice(procedure, requete, differences);
+            if (requete != null) {
+                comparerNotice(procedure, requete, differences);
+            }
         }
+
+        assertTrue(
+                differences.isEmpty(),
+                () -> "Des différences ont été détectées :\n"
+                        + String.join("\n", differences));
     }
-
-    assertTrue(
-            differences.isEmpty(),
-            () -> "Des différences ont été détectées :\n"
-                    + String.join("\n", differences)
-    );
-}
-
-
-
-
-
-
 
     // pour charger un fichier csv
     private Map<String, CsvRecord> lireCsv(Path fichier) throws IOException {
 
-    Map<String, CsvRecord> records = new HashMap<>();
+        Map<String, CsvRecord> records = new HashMap<>();
 
-    try (BufferedReader reader = Files.newBufferedReader(fichier)) {
+        try (BufferedReader reader = Files.newBufferedReader(fichier)) {
 
-        // Ignorer l'en-tête
-        reader.readLine();
+            // Ignorer l'en-tête
+            reader.readLine();
 
-        String line;
-        long lineNumber = 1;
+            String line;
+            long lineNumber = 1;
 
-        while ((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
 
-            lineNumber++;
+                lineNumber++;
 
-            String[] fields = line.split("\t", -1);
+                String[] fields = line.split("\t", -1);
 
-            if (fields.length != 6) {
-                throw new AssertionError( "Nombre de colonnes incorrect dans " + fichier + " à la ligne " + lineNumber + " : " + fields.length );
-            }
+                if (fields.length != 6) {
+                    throw new AssertionError("Nombre de colonnes incorrect dans " + fichier + " à la ligne "
+                            + lineNumber + " : " + fields.length);
+                }
 
-            CsvRecord record = CsvRecord.builder()
-                    .ppn(fields[0])
-                    .these(fields[1])
-                    .titre(fields[2])
-                    .resume(fields[3])
-                    .libelleRameau(fields[4])
-                    .langue(fields[5])
-                    .build();
+                CsvRecord record = CsvRecord.builder()
+                        .ppn(fields[0])
+                        .these(fields[1])
+                        .titre(fields[2])
+                        .resume(fields[3])
+                        .libelleRameau(fields[4])
+                        .langue(fields[5])
+                        .build();
 
-            if (records.put(record.getPpn(), record) != null) {
-                log.warn("fichier " + fichier.toString() + ", PPN en double : " + record.getPpn());
+                if (records.put(record.getPpn(), record) != null) {
+                    log.warn("fichier " + fichier.toString() + ", PPN en double : " + record.getPpn());
+                }
             }
         }
+
+        return records;
     }
-
-    return records;
-}
-
-
 
     private String normaliserRameau(String rameau) {
 
@@ -236,7 +202,6 @@ private void comparerCsv() throws IOException {
                 .collect(Collectors.joining(";"));
     }
 
-
     private String normaliserZoneRameau(String zone) {
 
         return Arrays.stream(zone.split("--"))
@@ -246,32 +211,31 @@ private void comparerCsv() throws IOException {
                 .collect(Collectors.joining("--"));
     }
 
-
-
-    private void comparerNotice( CsvRecord procedure, CsvRecord requete, List<String> differences) {
+    private void comparerNotice(CsvRecord procedure, CsvRecord requete, List<String> differences) {
 
         String ppn = procedure.getPpn();
 
-        comparerChamp( ppn, "PPN", procedure.getPpn(), requete.getPpn(), differences );
+        comparerChamp(ppn, "PPN", procedure.getPpn(), requete.getPpn(), differences);
 
-        comparerChamp( ppn, "THESE", procedure.getThese(), requete.getThese(), differences );
+        comparerChamp(ppn, "THESE", procedure.getThese(), requete.getThese(), differences);
 
-        comparerChamp( ppn, "TITRE", procedure.getTitre(), requete.getTitre(), differences );
+        comparerChamp(ppn, "TITRE", procedure.getTitre(), requete.getTitre(), differences);
 
-        comparerChamp( ppn, "RESUME", procedure.getResume(), requete.getResume(), differences );
+        comparerChamp(ppn, "RESUME", procedure.getResume(), requete.getResume(), differences);
 
-        comparerChamp( ppn, "LANGUE", procedure.getLangue(), requete.getLangue(), differences );
+        comparerChamp(ppn, "LANGUE", procedure.getLangue(), requete.getLangue(), differences);
 
-        comparerChamp(ppn, "RAMEAU",  normaliserRameau(procedure.getLibelleRameau()),  normaliserRameau(requete.getLibelleRameau()), differences);
+        comparerChamp(ppn, "RAMEAU", normaliserRameau(procedure.getLibelleRameau()),
+                normaliserRameau(requete.getLibelleRameau()), differences);
 
     }
 
     private void comparerChamp(
-        String ppn,
-        String nomChamp,
-        String valeurProcedure,
-        String valeurRequete,
-        List<String> differences) {
+            String ppn,
+            String nomChamp,
+            String valeurProcedure,
+            String valeurRequete,
+            List<String> differences) {
 
         if (!Objects.equals(valeurProcedure, valeurRequete)) {
 
@@ -282,8 +246,7 @@ private void comparerCsv() throws IOException {
                             + valeurProcedure
                             + "], requête=["
                             + valeurRequete
-                            + "]"
-            );
+                            + "]");
         }
     }
 }

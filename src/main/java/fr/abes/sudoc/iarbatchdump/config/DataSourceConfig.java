@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.config;
+package fr.abes.sudoc.indexation-sujetbatchdump.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -15,7 +15,8 @@ public class DataSourceConfig {
 
     // --- DataSource Oracle SUDOC ---
     @Bean
-    @Primary // j'ai mis primary sur cette data source sinon spring choisi h2 et reconnait pas les tables
+    @Primary // j'ai mis primary sur cette data source sinon spring choisi h2 et reconnait
+             // pas les tables
     @ConfigurationProperties(prefix = "app.datasource.oracle")
     public DataSource oracleDataSource() {
         return DataSourceBuilder.create().build();

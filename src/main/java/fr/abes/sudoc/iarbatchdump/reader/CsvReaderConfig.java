@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.reader;
+package fr.abes.sudoc.indexation-sujetbatchdump.reader;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 
 @Configuration
 public class CsvReaderConfig {
-    
-    //TODO faudrait refactorer ça, prck le reader et le writer font la même chose (mettre "update" ou "init" à l'intérieur du nom du fichier, mais si on change l'un faut changer l'autre aussi, bref)
+
+    // TODO faudrait refactorer ça, prck le reader et le writer font la même chose
+    // (mettre "update" ou "init" à l'intérieur du nom du fichier, mais si on change
+    // l'un faut changer l'autre aussi, bref)
     @Value("${app.batch.action}")
     private String action;
 
@@ -27,36 +29,33 @@ public class CsvReaderConfig {
             @Value("#{jobParameters['filename']}") String filename) {
 
         return new FlatFileItemReaderBuilder<CsvRecord>()
-            .name("csvReader")
-            .resource(
-                    new FileSystemResource(
-                        outputFilePath + "/" + filename.split(".csv")[0] + "_" + action + ".csv"
-                    )
-            )
-            .linesToSkip(1)
-            .lineMapper((line, lineNumber) -> {
+                .name("csvReader")
+                .resource(
+                        new FileSystemResource(
+                                outputFilePath + "/" + filename.split(".csv")[0] + "_" + action + ".csv"))
+                .linesToSkip(1)
+                .lineMapper((line, lineNumber) -> {
 
-                String[] fields = line.split("\t", -1);
+                    String[] fields = line.split("\t", -1);
 
-                if (fields.length != 6) {
-                    throw new FlatFileParseException(
-                            "Nombre de colonnes incorrect : " + fields.length,
-                            line,
-                            lineNumber
-                    );
-                }
+                    if (fields.length != 6) {
+                        throw new FlatFileParseException(
+                                "Nombre de colonnes incorrect : " + fields.length,
+                                line,
+                                lineNumber);
+                    }
 
-                CsvRecord record = new CsvRecord();
+                    CsvRecord record = new CsvRecord();
 
-                record.setPpn(fields[0]);
-                record.setThese(fields[1]);
-                record.setTitre(fields[2]);
-                record.setResume(fields[3]);
-                record.setLibelleRameau(fields[4]);
-                record.setLangue(fields[5]);
+                    record.setPpn(fields[0]);
+                    record.setThese(fields[1]);
+                    record.setTitre(fields[2]);
+                    record.setResume(fields[3]);
+                    record.setLibelleRameau(fields[4]);
+                    record.setLangue(fields[5]);
 
-                return record;
-            })
-            .build();
+                    return record;
+                })
+                .build();
     }
 }

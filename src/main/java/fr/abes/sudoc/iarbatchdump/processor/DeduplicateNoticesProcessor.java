@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.processor;
+package fr.abes.sudoc.indexation-sujetbatchdump.processor;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,7 +8,7 @@ import org.springframework.batch.item.ItemProcessor;
 
 import org.springframework.stereotype.Component;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 
 @Component
 @StepScope

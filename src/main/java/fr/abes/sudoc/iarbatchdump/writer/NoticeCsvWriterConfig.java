@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.writer;
+package fr.abes.sudoc.indexation-sujetbatchdump.writer;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -8,23 +8,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.FileSystemResource;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 
 @Configuration
 public class NoticeCsvWriterConfig {
 
     @Value("${app.batch.action}")
     private String action;
-    
 
     @Bean
     @StepScope
     @Primary
     public FlatFileItemWriter<CsvRecord> noticeCsvWriter(
             @Value("#{jobParameters['outputFilePath']}") String outputFilePath,
-            @Value("#{jobParameters['filename']}") String filename
-            ) {
-        
+            @Value("#{jobParameters['filename']}") String filename) {
+
         String outputFilename = filename.split(".csv")[0] + "_" + action + ".csv";
 
         FlatFileItemWriter<CsvRecord> writer = new FlatFileItemWriter<>();
@@ -35,7 +33,6 @@ public class NoticeCsvWriterConfig {
         writer.setHeaderCallback(w -> w.write("ppn\tthese\ttitre\tresume\trameau\tlangue"));
         return writer;
     }
-
 
     @Bean
     @StepScope
@@ -48,16 +45,12 @@ public class NoticeCsvWriterConfig {
         FlatFileItemWriter<CsvRecord> writer = new FlatFileItemWriter<>();
 
         writer.setName("deduplicationCsvWriter");
-        writer.setResource( new FileSystemResource( outputFilePath + "/" + outputFilename ) );
+        writer.setResource(new FileSystemResource(outputFilePath + "/" + outputFilename));
         writer.setAppendAllowed(false);
         writer.setLineAggregator(CsvRecord::toCsvLine);
-        writer.setHeaderCallback( w -> w.write( "ppn\tthese\ttitre\tresume\trameau\tlangue" ) );
+        writer.setHeaderCallback(w -> w.write("ppn\tthese\ttitre\tresume\trameau\tlangue"));
 
         return writer;
     }
 
-
-
 }
-
-

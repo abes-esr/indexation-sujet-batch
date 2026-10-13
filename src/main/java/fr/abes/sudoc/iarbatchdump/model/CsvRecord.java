@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.model;
+package fr.abes.sudoc.indexation-sujetbatchdump.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,6 @@ public class CsvRecord {
                 titre != null ? titre.replaceAll("[\\t\\n\\r]", " ") : "",
                 resume != null ? resume.replaceAll("[\\t\\n\\r]", " ") : "",
                 libelleRameau != null ? libelleRameau.replaceAll("[\\t\\n\\r]", " ") : "",
-                langue != null ? langue : ""
-        );
+                langue != null ? langue : "");
     }
 }

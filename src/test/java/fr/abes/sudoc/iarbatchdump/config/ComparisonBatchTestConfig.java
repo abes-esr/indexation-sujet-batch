@@ -1,7 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.config;
-
-
-
+package fr.abes.sudoc.indexation-sujetbatchdump.config;
 
 import javax.sql.DataSource;
 
@@ -20,21 +17,17 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
 
 @Configuration
 public class ComparisonBatchTestConfig {
 
-
-
     @Bean("oracleJdbcTemplate")
-    @Primary 
+    @Primary
     @Profile("test")
     public JdbcTemplate oracleJdbcTemplateTest(@Qualifier("testDataSource") DataSource testDataSource) {
         return new JdbcTemplate(testDataSource);
-    }    
-    
-
+    }
 
     @Bean
     public Job noticeExportJobProcedureTest(
@@ -54,12 +47,12 @@ public class ComparisonBatchTestConfig {
             FlatFileItemWriter<CsvRecord> csvWriter) {
 
         return new StepBuilder("exportNoticeProcedureStep", jobRepository)
-                .<CsvRecord, CsvRecord>chunk( 1000, transactionManager )
+                .<CsvRecord, CsvRecord>chunk(1000, transactionManager)
                 .reader(noticeReader)
-                // pas besoin de processor ici, puisqu'il n'y a pas de traitement entre l'entrée et la sortie
+                // pas besoin de processor ici, puisqu'il n'y a pas de traitement entre l'entrée
+                // et la sortie
                 .writer(csvWriter)
                 .build();
     }
-
 
 }
