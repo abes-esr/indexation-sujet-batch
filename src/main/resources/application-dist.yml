@@ -21,7 +21,7 @@ app:
     enabled: true
     action: update
     output-directory: ${INDEXATION_SUJET_BATCH_OUTPUT_DIR}
-    output-filename: ${INDEXATION_SUJET_BATCH_CSV_OUTPUT_FILENAME:export_rameau.csv}
+    output-filename: ${INDEXATION_SUJET_BATCH_CSV_OUTPUT_FILENAME:export_rameau}
     vectorization-url: ${INDEXATION_SUJET_BATCH_VECTORIZATION_URL}
     partition:
       chunk-size: ${INDEXATION_SUJET_BATCH_CHUNK_SIZE}
@@ -36,5 +36,5 @@ app:
 
 logging:
   level:
-    fr.abes.indexation-sujetbatchdump: DEBUG
+    fr.abes.indexation_sujet_batch: DEBUG
     org.springframework.batch: INFO

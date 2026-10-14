@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.reader;
+package fr.abes.sudoc.indexation_sujet_batch.reader;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.mapper.NoticeRowMapper;
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.mapper.NoticeRowMapper;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
 
 @Configuration
 public class NoticeReaderConfig {

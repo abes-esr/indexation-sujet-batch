@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.config;
+package fr.abes.sudoc.indexation_sujet_batch.config;
 
 import javax.sql.DataSource;
 
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
 
 @Configuration
 public class ComparisonBatchTestConfig {

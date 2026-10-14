@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump;
+package fr.abes.sudoc.indexation_sujet_batch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
 import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles("test")

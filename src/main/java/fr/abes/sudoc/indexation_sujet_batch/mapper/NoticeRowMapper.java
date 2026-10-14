@@ -1,10 +1,10 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.mapper;
+package fr.abes.sudoc.indexation_sujet_batch.mapper;
 
 import org.apache.commons.text.StringEscapeUtils;
 
 import org.springframework.jdbc.core.RowMapper;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.partitioner;
+package fr.abes.sudoc.indexation_sujet_batch.partitioner;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +37,8 @@ public class SQLqueryPartitioner {
             long countId = getCountId();
 
             validateIdRange(maxId, countId);
+
+            maxId = 200_000L;
 
             int partitionNumber = 0;
 

@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.config;
+package fr.abes.sudoc.indexation_sujet_batch.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;

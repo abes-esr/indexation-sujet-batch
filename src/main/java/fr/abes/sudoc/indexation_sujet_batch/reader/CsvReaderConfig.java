@@ -1,40 +1,33 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.reader;
+package fr.abes.sudoc.indexation_sujet_batch.reader;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.utils.FilenameUtils;
 
 @Configuration
 public class CsvReaderConfig {
 
-    // TODO faudrait refactorer ça, prck le reader et le writer font la même chose
-    // (mettre "update" ou "init" à l'intérieur du nom du fichier, mais si on change
-    // l'un faut changer l'autre aussi, bref)
-    @Value("${app.batch.action}")
-    private String action;
+    @Autowired 
+    FilenameUtils filenameUtils;
+
 
     @Bean
     @StepScope
-    public FlatFileItemReader<CsvRecord> csvReader(
-            @Value("#{jobParameters['outputFilePath']}") String outputFilePath,
-            @Value("#{jobParameters['filename']}") String filename) {
+    public FlatFileItemReader<CsvRecord> csvReader() {
 
         return new FlatFileItemReaderBuilder<CsvRecord>()
-                .name("csvReader")
-                .resource(
-                        new FileSystemResource(
-                                outputFilePath + "/" + filename.split(".csv")[0] + "_" + action + ".csv"))
-                .linesToSkip(1)
-                .lineMapper((line, lineNumber) -> {
+            .name("csvReader")
+            .resource( new FileSystemResource( filenameUtils.getDoublonFilePath() ) )
+            .linesToSkip(1)
+            .lineMapper((line, lineNumber) -> {
 
                     String[] fields = line.split("\t", -1);
 

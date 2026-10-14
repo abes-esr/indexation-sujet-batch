@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.config;
+package fr.abes.sudoc.indexation_sujet_batch.config;
 
 import javax.sql.DataSource;
 
@@ -21,9 +21,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.abes.sudoc.indexation-sujetbatchdump.model.CsvRecord;
-import fr.abes.sudoc.indexation-sujetbatchdump.processor.DeduplicateNoticesProcessor;
-import fr.abes.sudoc.indexation-sujetbatchdump.takslet.CallVectorizationApiTasklet;
+import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
+import fr.abes.sudoc.indexation_sujet_batch.processor.DeduplicateNoticesProcessor;
+import fr.abes.sudoc.indexation_sujet_batch.takslet.UploadCsvFileTasklet;
 
 @Configuration
 @EnableBatchProcessing
@@ -57,12 +57,12 @@ public class BatchConfig {
                         JobRepository jobRepository,
                         @Qualifier("exportNoticesStep") Step exportNoticesStep,
                         @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep,
-                        @Qualifier("callVectorizationApiStep") Step callVectorizationApiStep) {
+                        @Qualifier("uploadCsvFileStep") Step uploadCsvFileStep) {
 
                 return new JobBuilder("noticeExportJob", jobRepository)
                                 .start(exportNoticesStep)
                                 .next(deduplicateCsvStep)
-                                .next(callVectorizationApiStep)
+                                .next(uploadCsvFileStep)
                                 .build();
         }
 
@@ -89,55 +89,60 @@ public class BatchConfig {
                                 .build();
         }
 
-        // step "chef d'orchestre", qui lance le step de lecture et d'écriture plusieurs
-        // fois mais sur différentes partitions
-        @Bean
-        public Step exportNoticesStep(
-                        JobRepository jobRepository,
-                        @Qualifier("exportNoticeWorkerStep") Step exportNoticeWorkerStep,
-                        Partitioner noticePartitioner) {
+        
 
-                return new StepBuilder("exportNoticesStep", jobRepository)
-                                .partitioner(
-                                                "exportNoticesWorkerStep",
-                                                noticePartitioner)
-                                .step(exportNoticeWorkerStep)
-                                .gridSize(1)
-                                .build();
-        }
+    // step "chef d'orchestre", qui lance le step de lecture et d'écriture plusieurs fois mais sur différentes partitions
+    @Bean
+    public Step exportNoticesStep(
+            JobRepository jobRepository,
+            @Qualifier("exportNoticeWorkerStep") Step exportNoticeWorkerStep,
+            Partitioner noticePartitioner) {
 
-        // step qui supprime les doublons du fichier
-        @Bean
-        public Step deduplicateNoticesStep(
-                        JobRepository jobRepository,
-                        PlatformTransactionManager transactionManager,
-                        FlatFileItemReader<CsvRecord> deduplicationReader,
-                        DeduplicateNoticesProcessor processor,
-                        @Qualifier("deduplicationCsvWriter") FlatFileItemWriter<CsvRecord> deduplicatedCsvWriter) {
+        return new StepBuilder("exportNoticesStep", jobRepository)
+                .partitioner(
+                        "exportNoticesWorkerStep",
+                        noticePartitioner
+                )
+                .step(exportNoticeWorkerStep)
+                .gridSize(1)
+                .build();
+    }
 
-                return new StepBuilder(
-                                "deduplicateNoticesStep",
-                                jobRepository)
-                                .<CsvRecord, CsvRecord>chunk(
-                                                1000,
-                                                transactionManager)
-                                .reader(deduplicationReader)
-                                .processor(processor)
-                                .writer(deduplicatedCsvWriter)
-                                .build();
-        }
+    
 
-        // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le
-        // batch est terminé et que les csv sont disponibles)
-        @Bean
-        public Step callVectorizationApiStep(
-                        JobRepository jobRepository,
-                        PlatformTransactionManager transactionManager,
-                        CallVectorizationApiTasklet callVectorizationApiTasklet) {
+    // step qui supprime les doublons du fichier
+    @Bean
+    public Step deduplicateNoticesStep(
+        JobRepository jobRepository,
+        PlatformTransactionManager transactionManager,
+        FlatFileItemReader<CsvRecord> deduplicationReader,
+        DeduplicateNoticesProcessor processor,
+        @Qualifier("deduplicationCsvWriter") FlatFileItemWriter<CsvRecord> deduplicatedCsvWriter) {
 
-                return new StepBuilder("callVectorizationApiStep", jobRepository)
-                                .tasklet(callVectorizationApiTasklet, transactionManager)
-                                .build();
-        }
+        return new StepBuilder(
+                "deduplicateNoticesStep",
+                jobRepository
+        )
+        .<CsvRecord, CsvRecord>chunk(
+                1000,
+                transactionManager
+        )
+        .reader(deduplicationReader)
+        .processor(processor)
+        .writer(deduplicatedCsvWriter)
+        .build();
+    }
+
+    // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le batch est terminé et que les csv sont disponibles)
+    @Bean
+    public Step uploadCsvFileStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            UploadCsvFileTasklet uploadCsvFileTasklet) {
+
+        return new StepBuilder("uploadCsvFileStep", jobRepository)
+                .tasklet(uploadCsvFileTasklet, transactionManager)
+                .build();
+    }
 
 }

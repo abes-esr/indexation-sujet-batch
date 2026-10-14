@@ -16,8 +16,8 @@ crontab /etc/cron.d/tasks
 
 # Force le démarrage du batch au démarrage du conteneur
 if [ "$INDEXATION_SUJET_BATCH_AT_STARTUP" = "1" ]; then
-  echo "-> Lancement de indexation-rameau-batch-batch1.sh au démarrage du conteneur"
-  /scripts/indexation-rameau-batch-batch1.sh
+  echo "-> Lancement de indexation-sujet-batch-batch1.sh au démarrage du conteneur"
+  /scripts/indexation-sujet-batch-batch1.sh
 fi
 
 # execute CMD (crond)

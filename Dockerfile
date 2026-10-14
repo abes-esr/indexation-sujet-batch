@@ -1,5 +1,5 @@
 ###
-# Image pour la compilation de indexation-rameau-batch
+# Image pour la compilation de indexation-sujet-batch
 FROM maven:3-eclipse-temurin-21 AS build-image
 WORKDIR /build/
 # Installation et configuration de la locale FR
@@ -23,7 +23,7 @@ RUN mvn --batch-mode \
 
 
 ###
-# Image pour le module batch de indexation-rameau-batch
+# Image pour le module batch de indexation-sujet-batch
 # Remarque: l'image openjdk:21 n'est pas utilisée car nous avons besoin de cronie
 #           qui n'est que disponible sous centos/rockylinux.
 FROM rockylinux:8 AS batch-image
@@ -36,8 +36,8 @@ RUN dnf install -y cronie gettext && \
 COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 # Le JAR et le script pour le batch de INDEXATION_SUJET batch
 RUN dnf install -y java-21-openjdk
-COPY ./docker/batch/indexation-rameau-batch-batch1.sh /scripts/indexation-rameau-batch-batch1.sh
-COPY --from=build-image /build/target/*.jar /scripts/indexation-rameau-batch-batch1.jar
+COPY ./docker/batch/indexation-sujet-batch-batch1.sh /scripts/indexation-sujet-batch-batch1.sh
+COPY --from=build-image /build/target/*.jar /scripts/indexation-sujet-batch-batch1.jar
 RUN chmod +x /scripts/*batch*.sh
 # Les locales fr_FR
 RUN dnf install langpacks-fr glibc-all-langpacks -y

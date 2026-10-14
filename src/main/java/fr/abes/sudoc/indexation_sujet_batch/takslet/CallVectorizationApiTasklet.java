@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.takslet;
+package fr.abes.sudoc.indexation_sujet_batch.takslet;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;

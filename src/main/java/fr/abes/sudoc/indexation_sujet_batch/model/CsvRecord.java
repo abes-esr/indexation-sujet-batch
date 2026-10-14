@@ -1,4 +1,4 @@
-package fr.abes.sudoc.indexation-sujetbatchdump.model;
+package fr.abes.sudoc.indexation_sujet_batch.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
