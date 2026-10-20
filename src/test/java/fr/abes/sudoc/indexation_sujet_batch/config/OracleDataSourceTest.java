@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump.config;
+package fr.abes.sudoc.indexation_sujet_batch.config;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
