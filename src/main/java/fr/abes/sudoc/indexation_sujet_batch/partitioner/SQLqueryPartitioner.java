@@ -38,8 +38,6 @@ public class SQLqueryPartitioner {
 
             validateIdRange(maxId, countId);
 
-            maxId = 200_000L;
-
             int partitionNumber = 0;
 
             for (long borneInf = 0; borneInf < maxId; borneInf += tailleLot) {
