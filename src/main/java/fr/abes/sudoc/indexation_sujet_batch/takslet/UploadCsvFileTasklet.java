@@ -26,11 +26,16 @@ public class UploadCsvFileTasklet implements Tasklet {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${app.batch.upload-url}")
-    protected String URL_API;
+    protected String UPLOAD_URL;
+
+    @Value("${app.batch.action}")
+    protected String action;
     
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+
+        String URL_API = UPLOAD_URL + action + "/upload" ;
         
         FileSystemResource file = new FileSystemResource(filenameUtils.getOutputFilePath());
 
