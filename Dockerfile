@@ -28,6 +28,11 @@ RUN mvn --batch-mode \
 #           qui n'est que disponible sous centos/rockylinux.
 FROM rockylinux:8 AS batch-image
 WORKDIR /scripts/
+
+# Répertoire de sortie des fichiers CSV
+RUN mkdir -p /data/csv
+
+
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
 # gettext: pour avoir envsubst qui permet de gérer le template tasks.tmpl
