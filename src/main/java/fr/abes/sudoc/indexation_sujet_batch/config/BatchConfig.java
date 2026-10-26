@@ -23,6 +23,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.abes.sudoc.indexation_sujet_batch.model.CsvRecord;
 import fr.abes.sudoc.indexation_sujet_batch.processor.DeduplicateNoticesProcessor;
+import fr.abes.sudoc.indexation_sujet_batch.takslet.CleanOutputFilesTasklet;
 import fr.abes.sudoc.indexation_sujet_batch.takslet.UploadCsvFileTasklet;
 
 @Configuration
@@ -57,10 +58,12 @@ public class BatchConfig {
                         JobRepository jobRepository,
                         @Qualifier("exportNoticesStep") Step exportNoticesStep,
                         @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep,
+                        @Qualifier("cleanOutputFilesStep") Step cleanOutputFilesStep,
                         @Qualifier("uploadCsvFileStep") Step uploadCsvFileStep) {
 
                 return new JobBuilder("noticeExportJob", jobRepository)
-                                .start(exportNoticesStep)
+                                .start(cleanOutputFilesStep)
+                                .next(exportNoticesStep)
                                 .next(deduplicateCsvStep)
                                 .next(uploadCsvFileStep)
                                 .build();
@@ -132,6 +135,23 @@ public class BatchConfig {
         .writer(deduplicatedCsvWriter)
         .build();
     }
+
+
+
+
+    // step de départ qui supprime les fichiers de travail de l'exécution précédente
+    @Bean
+    public Step cleanOutputFilesStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            CleanOutputFilesTasklet tasklet) {
+
+        return new StepBuilder("cleanOutputFilesStep", jobRepository)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+
 
     // step final qui envoie un POST sur l'endpoint de l'API (pour prévenir que le batch est terminé et que les csv sont disponibles)
     @Bean
