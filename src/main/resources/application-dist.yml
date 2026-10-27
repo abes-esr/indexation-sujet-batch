@@ -1,14 +1,16 @@
 spring:
+  main:
+    web-application-type: none
   application:
-    name: iar-batch-dump
+    name: indexation-sujet-batch
 
-  datasource:
-    h2:
-      jdbc-url: jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1
-      username: sa
-      password: ""
-      driver-class-name: org.h2.Driver
-      initialization-mode: always
+  # datasource:
+  #   h2:
+  #     jdbc-url: jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1
+  #     username: sa
+  #     password: ""
+  #     driver-class-name: org.h2.Driver
+  #     initialization-mode: always
 
   batch:
     jdbc:
@@ -18,30 +20,22 @@ app:
   batch:
     enabled: true
     action: update
-    output-directory: ${BATCH_OUTPUT_DIR}
-    upload-url: ${UPLOAD_URL}
-    vectorization-url: ${VECTORIZATION_URL}
+    output-directory: ${INDEXATION_SUJET_BATCH_OUTPUT_DIR}
+    output-filename: ${INDEXATION_SUJET_BATCH_OUTPUT_FILENAME}
+    upload-url: ${INDEXATION_SUJET_BATCH_UPLOAD_URL}
+
     partition:
-      chunk-size: ${CHUNK_SIZE}
-      source-table: ${SOURCE_TABLE_TEST}
-  comparison-test:
-    output-directory: ${BATCH_TEST_OUTPUT_DIR}
-    procedure-filename: procedure_test.csv
-    query-filename: query_test.csv
+      chunk-size: ${INDEXATION_SUJET_BATCH_CHUNK_SIZE}
+      source-table: ${INDEXATION_SUJET_BATCH_SOURCE_TABLE}
+
   datasource:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@//${ORACLE_HOST}:${ORACLE_PORT}/${ORACLE_SERVICE}
-      username: ${ORACLE_USER}
-      password: ${ORACLE_PASSWORD}
-    oracle-test:
-      driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@//${ORACLE_TEST_HOST}:${ORACLE_TEST_PORT}/${ORACLE_TEST_SERVICE}
-      username: ${ORACLE_TEST_USER}
-      password: ${ORACLE_TEST_PASSWORD}
-
+      jdbc-url: jdbc:oracle:thin:@//${INDEXATION_SUJET_ORACLE_HOST}:${INDEXATION_SUJET_ORACLE_PORT}/${INDEXATION_SUJET_ORACLE_SERVICE}
+      username: ${INDEXATION_SUJET_ORACLE_USER}
+      password: ${INDEXATION_SUJET_ORACLE_PASSWORD}
 
 logging:
   level:
-    fr.abes.iarbatchdump: DEBUG
+    fr.abes.indexation_sujet_batch: DEBUG
     org.springframework.batch: INFO

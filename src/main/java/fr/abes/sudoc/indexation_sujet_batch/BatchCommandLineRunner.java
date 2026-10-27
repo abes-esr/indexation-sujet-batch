@@ -1,4 +1,4 @@
-package fr.abes.sudoc.iarbatchdump;
+package fr.abes.sudoc.indexation_sujet_batch;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -12,10 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(
-    name = "app.batch.enabled",
-    havingValue = "true"
-)
+@ConditionalOnProperty(name = "app.batch.enabled", havingValue = "true")
 public class BatchCommandLineRunner implements CommandLineRunner {
 
     @Autowired
@@ -25,21 +22,16 @@ public class BatchCommandLineRunner implements CommandLineRunner {
     @Qualifier("noticeExportJob")
     private Job noticeExportJob;
 
-
     @Value("${app.batch.action}")
     private String action;
 
-    @Value("${app.batch.output-directory}")
-    private String outputFilePath;
 
     @Override
     public void run(String... args) throws Exception {
 
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("action", action)
-                .addString("outputFilePath", outputFilePath)
                 .addString("sqlFile", "notices_query.sql")
-                .addString("filename", "requete_chunk_full.csv")
                 .toJobParameters();
 
         jobLauncher.run(noticeExportJob, jobParameters);

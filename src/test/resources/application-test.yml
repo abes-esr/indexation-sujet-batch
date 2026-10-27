@@ -9,5 +9,17 @@ app:
   batch:
     enabled: false
     partition:
-      chunk-size: 30000000
-      source-table: ${SOURCE_TABLE_TEST}
+      chunk-size: ${INDEXATION_SUJET_BATCH_TEST_CHUNK_SIZE}
+      source-table: ${INDEXATION_SUJET_BATCH_TEST_SOURCE_TABLE}
+
+  comparison-test:
+    output-directory: ${INDEXATION_SUJET_BATCH_TEST_OUTPUT_DIR}
+    procedure-filename: ${INDEXATION_SUJET_BATCH_TEST_PROCEDURE_FILENAME}
+    query-filename: ${INDEXATION_SUJET_BATCH_TEST_REQUETE_FILENAME}
+
+  datasource:
+    oracle-test:
+      driver-class-name: oracle.jdbc.OracleDriver
+      jdbc-url: jdbc:oracle:thin:@//${INDEXATION_SUJET_ORACLE_TEST_HOST}:${INDEXATION_SUJET_ORACLE_TEST_PORT}/${INDEXATION_SUJET_ORACLE_TEST_SERVICE}
+      username: ${INDEXATION_SUJET_ORACLE_TEST_USER}
+      password: ${INDEXATION_SUJET_ORACLE_TEST_PASSWORD}
