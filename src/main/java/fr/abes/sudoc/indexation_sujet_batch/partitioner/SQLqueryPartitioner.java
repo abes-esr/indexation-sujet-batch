@@ -34,9 +34,6 @@ public class SQLqueryPartitioner {
             Map<String, ExecutionContext> partitions = new HashMap<>();
 
             long maxId = getMaxId();
-            long countId = getCountId();
-
-            validateIdRange(maxId, countId);
 
             int partitionNumber = 0;
 
@@ -68,17 +65,4 @@ public class SQLqueryPartitioner {
                 Long.class);
     }
 
-    private long getCountId() {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(id) FROM " + sourceTable,
-                Long.class);
-    }
-
-    private void validateIdRange(long maxId, long countId) {
-        if (maxId > countId + 1_000_000L && countId > tailleLot) {
-            throw new IllegalStateException(
-                    "Il y a " + countId + " lignes, mais l'ID max est : " + maxId
-                            + ". Les données sont trop éparses (peut-être un problème d'attribution des IDs ?)");
-        }
-    }
 }
