@@ -38,7 +38,7 @@ rameau_par_zone AS (
     SELECT
         zz.ppn,
         zz.posfield,
-        LISTAGG( zz2.datas || '#' || zz.datas, ' -- ' ) WITHIN GROUP (ORDER BY zz.ppn) AS rameau
+        LISTAGG( zz2.datas || '#' || zz.datas, ' -- ' ) WITHIN GROUP (ORDER BY zz.POSSUBFIELD) AS rameau
     FROM notice_valide v
     JOIN biblio_table_frbr_6XX zz ON zz.ppn = v.ppn AND zz.posfield = v.posfield AND zz.tag IN ('606$a', '606$x')
     JOIN biblio_table_frbr_6XX zz2 ON zz2.ppn = v.ppn AND zz2.posfield = v.posfield AND zz.POSSUBFIELD - 1 = zz2.POSSUBFIELD AND zz2.tag = '606$3'
