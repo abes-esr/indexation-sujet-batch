@@ -23,12 +23,15 @@ jobs:
       - name: "Build: checkout source code"
         uses: actions/checkout@v6
 
-      # Préparation des tags Docker (ex: latest, branch-name, version git)
+      # Préparation des tags Docker
       - name: "Push: prepare version from git tags/branchs"
         id: docker_tag_meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKERHUB_IMAGE_PREFIX }}
+          tags: |
+            type=ref,event=branch,suffix=-batch
+            type=raw,value=latest-batch,enable={{is_tag}}
 
       # Configuration du builder Docker Buildx
       - name: "Set up Docker Buildx"
@@ -48,4 +51,4 @@ jobs:
         with:
           push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/')) }}
           target: batch-image
-          tags: ${{ steps.docker_tag_meta.outputs.tags }}-batch
+          tags: ${{ steps.docker_tag_meta.outputs.tags }}
